@@ -15,7 +15,7 @@ import org.junit.runner.RunWith;
 @CucumberOptions(
         tags = {"@xml","~@wip"},
         features = ".",
-        format = {"json:target/report-cucumber/cucumber.json","html:report/report-cucumber", "pretty"}
+        format = {"json:target/report-cucumber/cucumber.json","html:report/report-cucumber"}
 )
 public class CucumberRunner {
 }

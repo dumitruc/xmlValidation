@@ -1,15 +1,18 @@
 package com.dumitruc.training.xml;
 
 import cucumber.api.PendingException;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
+import javax.xml.transform.Source;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.Scanner;
 
 import static junit.framework.Assert.assertTrue;
 
@@ -24,9 +27,10 @@ public class StepDefXmlValidate {
 
     File xmlFile;
     File xsdFile;
-    Boolean isValid;
+
 
     final String FILE_PRFX = "src\\test\\resources\\com\\dumitruc\\training\\xml\\";
+    private String updatedXml;
 
     @Given("^we have a valid XML template (\\S+)$")
     public void haveXMLFile(String xmlFileName) throws Throwable {
@@ -35,13 +39,13 @@ public class StepDefXmlValidate {
         this.xmlFile = xmlFile;
     }
 
-    @When("^I validate the template as it is against the schema (\\S+)$")
+    @And("^is valid against the schema (\\S+)$")
     public void validateXmlTemplate(String xmlSchemaName) throws Throwable {
         File xsdFile = new File(FILE_PRFX+xmlSchemaName);
         assert (xmlFile.canRead());
         this.xsdFile = xsdFile;
 
-        byte[] encodedXml = Files.readAllBytes(Paths.get(xsdFile.toURI()));
+        byte[] encodedXml = Files.readAllBytes(Paths.get(xmlFile.toURI()));
         String xmlString = new String(encodedXml);
 
         byte[] encodedXsd = Files.readAllBytes(Paths.get(xsdFile.toURI()));
@@ -49,33 +53,35 @@ public class StepDefXmlValidate {
 
         XmlValidator xmlValidator = new XmlValidator();
 
-        isValid = xmlValidator.validateAgainstXSD(xmlString,xsdString);
+        Boolean isValid = xmlValidator.validateAgainstXSD(xmlString,xsdString);
+        assert (isValid);
 
     }
 
-    @Then("^the validation responds with - valid xml$")
-    public void checkIsValid() throws Throwable {
-        assert (isValid != null && isValid);
+
+
+    @When("^I set the order quantity to (-?\\d+) in the XML$")
+    public void setOrderQuantity(int quantity) throws Throwable {
+        Scanner scanner = new Scanner(xmlFile).useDelimiter("\\A");
+        String xmlFileContent="";
+        if (scanner.hasNext()){
+            xmlFileContent=scanner.next();
+        }
+
+//        updatedXml = xmlFileContent.replace("<quantity>1</quantity>", "<quantity"+"thth"+"</quantity>");
+        updatedXml = xmlFileContent.replace("<quantity>1</quantity>", "<quantity>"+quantity+"</quantity>");
     }
 
-    @Given("^I have the designed schema (\\S+)$")
-    public void iHaveSchema(String xmlSchemaName) throws Throwable {
-        assertTrue("Not the same schema for which we checked the template",xsdFile.getCanonicalPath().equalsIgnoreCase(FILE_PRFX+xmlSchemaName));
+    @Then("^the schema validation accepts the input as (valid|invalid)$")
+    public void checkResultXml(String expResult) throws Throwable {
+        XmlValidator xmlValidator = new XmlValidator();
+        Boolean isValid = xmlValidator.validateAgainstXSD(updatedXml,new Scanner(xsdFile).useDelimiter("\\A").next());
+
+        if(expResult.equalsIgnoreCase("valid")){
+            assertTrue(isValid);
+        }else{
+            assertTrue(!isValid);
+        }
     }
 
-    @When("^I set the order quantity to (\\d+) in the XML$")
-    public void setOrderQuantity(int arg1) throws Throwable {
-        InputStream isXML = new FileInputStream(xmlFile);
-
-    }
-
-    @Then("^the schema validation accepts the input as valid$")
-    public void the_schema_validation_accepts_the_input_as_valid() throws Throwable {
-        System.out.println("something to do");
-    }
-
-    @Then("^the schema validation accepts the input as invalid$")
-    public void the_schema_validation_accepts_the_input_as_invalid() throws Throwable {
-        System.out.println("something to do");
-    }
 }

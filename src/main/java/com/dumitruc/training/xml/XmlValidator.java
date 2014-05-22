@@ -1,11 +1,16 @@
 package com.dumitruc.training.xml;
 
+import org.xml.sax.SAXException;
+
 import javax.xml.XMLConstants;
+import javax.xml.transform.Source;
+import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 
 /**
@@ -17,7 +22,7 @@ import java.io.InputStream;
  */
 public class XmlValidator {
 
-    public boolean validateAgainstXSD(String xml, String xsd){
+    public boolean validateAgainstXSD(String xml, String xsd) throws IOException {
 
         InputStream isXml = new ByteArrayInputStream(xml.getBytes());
         InputStream isXsd = new ByteArrayInputStream(xsd.getBytes());
@@ -25,8 +30,8 @@ public class XmlValidator {
         return validateAgainstXSD(isXml,isXsd);
     }
 
-    private static boolean validateAgainstXSD(InputStream xml, InputStream xsd)
-    {
+    private static boolean validateAgainstXSD(InputStream xml, InputStream xsd) throws IOException {
+        Source xmlSource = new StreamSource(xml);
 
         try
         {
@@ -34,14 +39,14 @@ public class XmlValidator {
                     SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             Schema schema = factory.newSchema(new StreamSource(xsd));
             Validator validator = schema.newValidator();
-            validator.validate(new StreamSource(xml));
+            validator.validate(xmlSource);
             return true;
         }
-        catch(Exception ex)
-        {
+        catch(SAXException e) {
+            System.out.println("Reason: " + e.getLocalizedMessage());
             return false;
         }
-    }
 
+    }
 
 }
