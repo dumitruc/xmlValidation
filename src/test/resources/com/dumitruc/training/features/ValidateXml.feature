@@ -15,6 +15,7 @@ Feature: XSD Schema validation
   Examples:
     | xsd file name | order quantity | type    |
     | shiporder.xsd | 4              | valid   |
+    | shiporder.xsd | 0              | invalid   |
     | shiporder.xsd | -1             | invalid |
 
 
