@@ -28,7 +28,6 @@ public class StepDefXmlValidate {
     File xsdFile;
 
     private String updatedXml;
-    XmlHelper xmlHelper = new XmlHelper();
 
     @Given("^we have a valid XML template (\\S+)$")
     public void haveXMLFile(String xmlFileName) throws Throwable {
@@ -49,14 +48,14 @@ public class StepDefXmlValidate {
         byte[] encodedXsd = Files.readAllBytes(Paths.get(xsdFile.toURI()));
         String xsdString = new String(encodedXsd);
 
-        String validationError = xmlHelper.validateAgainstXSD(xmlString, xsdString);
+        String validationError = XmlHelper.validateAgainstXSD(xmlString, xsdString);
         assertTrue(validationError == null);
 
     }
 
     @Then("^the schema validation accepts the input as (valid|invalid)$")
     public void checkResultXml(String expResult) throws Throwable {
-        String validationError = xmlHelper.validateAgainstXSD(updatedXml, new Scanner(xsdFile).useDelimiter("\\A").next());
+        String validationError = XmlHelper.validateAgainstXSD(updatedXml, new Scanner(xsdFile).useDelimiter("\\A").next());
 
         if (expResult.equalsIgnoreCase("valid")) {
             assertTrue(validationError == null);
