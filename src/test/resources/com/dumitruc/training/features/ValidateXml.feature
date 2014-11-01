@@ -1,4 +1,4 @@
-@xml
+@XML
 Feature: XSD Schema validation
   As a test analyst
   I want to ensure that the designed schema satisfies the business requirements
