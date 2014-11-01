@@ -4,9 +4,6 @@ Feature: XSD Schema validation
   I want to ensure that the designed schema satisfies the business requirements
   So that the system can receive/reject data based on defined requirements
 
-#Source materials
-#Schema: http://www.w3schools.com/schema/schema_example.asp
-
   Scenario Outline: Validate the schema checks the quantity correctly
     Given we have a valid XML template shiporder.xml
     And is valid against the schema <xsd file name>
@@ -17,6 +14,21 @@ Feature: XSD Schema validation
     | shiporder.xsd | 4              | valid   |
     | shiporder.xsd | 0              | invalid |
     | shiporder.xsd | -1             | invalid |
+    | shiporder.xsd | tg             | invalid |
+
+
+  Scenario Outline: Validate multiple fields are validated correctly
+    Given we have a valid XML template shiporder.xml
+    And is valid against the schema <xsd file name>
+    When I set the order quantity to <content> in the XML
+    When I set the XML content to <content> in <path>
+    Then the schema validation accepts the input as <type>
+  Examples:
+    | xsd file name | path       | content | type    |
+    | shiporder.xsd | //quantity | 4       | valid   |
+    | shiporder.xsd | //quantity | 0       | invalid |
+    | shiporder.xsd | //quantity | -1      | invalid |
+    | shiporder.xsd | //quantity | tg      | invalid |
 
 
 

@@ -4,7 +4,6 @@ import org.xml.sax.SAXException;
 
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
-import javax.xml.transform.stream.StreamResult;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
@@ -27,22 +26,19 @@ public class XmlValidator {
         InputStream isXml = new ByteArrayInputStream(xml.getBytes());
         InputStream isXsd = new ByteArrayInputStream(xsd.getBytes());
 
-        return validateAgainstXSD(isXml,isXsd);
+        return isXmlPassingSchemaValidation(isXml, isXsd);
     }
 
-    private static boolean validateAgainstXSD(InputStream xml, InputStream xsd) throws IOException {
+    private static boolean isXmlPassingSchemaValidation(InputStream xml, InputStream xsd) throws IOException {
         Source xmlSource = new StreamSource(xml);
 
-        try
-        {
-            SchemaFactory factory =
-                    SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
+        try {
+            SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
             Schema schema = factory.newSchema(new StreamSource(xsd));
             Validator validator = schema.newValidator();
             validator.validate(xmlSource);
             return true;
-        }
-        catch(SAXException e) {
+        } catch (SAXException e) {
             System.out.println("Reason: " + e.getLocalizedMessage());
             return false;
         }
