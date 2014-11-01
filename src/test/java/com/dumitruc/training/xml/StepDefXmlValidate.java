@@ -1,15 +1,14 @@
 package com.dumitruc.training.xml;
 
-import cucumber.api.PendingException;
 import cucumber.api.java.en.And;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+import org.apache.commons.io.FileUtils;
 
-import javax.xml.transform.Source;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.Scanner;
@@ -28,19 +27,19 @@ public class StepDefXmlValidate {
     File xmlFile;
     File xsdFile;
 
-    final String FILE_PRFX = "src\\test\\resources\\com\\dumitruc\\training\\xml\\";
     private String updatedXml;
+    XmlHelper xmlHelper = new XmlHelper();
 
     @Given("^we have a valid XML template (\\S+)$")
     public void haveXMLFile(String xmlFileName) throws Throwable {
-        File xmlFile = new File(FILE_PRFX + xmlFileName);
+        File xmlFile = getLocalFile(xmlFileName);
         assertTrue("Could not read: " + xmlFile.getAbsolutePath(), xmlFile.canRead());
         this.xmlFile = xmlFile;
     }
 
     @And("^is valid against the schema (\\S+)$")
     public void validateXmlTemplate(String xmlSchemaName) throws Throwable {
-        File xsdFile = new File(FILE_PRFX + xmlSchemaName);
+        File xsdFile = getLocalFile(xmlSchemaName);
         assert (xmlFile.canRead());
         this.xsdFile = xsdFile;
 
@@ -50,40 +49,29 @@ public class StepDefXmlValidate {
         byte[] encodedXsd = Files.readAllBytes(Paths.get(xsdFile.toURI()));
         String xsdString = new String(encodedXsd);
 
-        XmlValidator xmlValidator = new XmlValidator();
+        String validationError = xmlHelper.validateAgainstXSD(xmlString, xsdString);
+        assertTrue(validationError == null);
 
-        Boolean isValid = xmlValidator.validateAgainstXSD(xmlString, xsdString);
-        assert (isValid);
-
-    }
-
-
-    @When("^I set the order quantity to (\\S+) in the XML$")
-    public void setOrderQuantity(String quantity) throws Throwable {
-        Scanner scanner = new Scanner(xmlFile).useDelimiter("\\A");
-        String xmlFileContent = "";
-        if (scanner.hasNext()) {
-            xmlFileContent = scanner.next();
-        }
-
-        updatedXml = xmlFileContent.replace("<quantity>1</quantity>", "<quantity>" + quantity + "</quantity>");
     }
 
     @Then("^the schema validation accepts the input as (valid|invalid)$")
     public void checkResultXml(String expResult) throws Throwable {
-        XmlValidator xmlValidator = new XmlValidator();
-        Boolean isValid = xmlValidator.validateAgainstXSD(updatedXml, new Scanner(xsdFile).useDelimiter("\\A").next());
+        String validationError = xmlHelper.validateAgainstXSD(updatedXml, new Scanner(xsdFile).useDelimiter("\\A").next());
 
         if (expResult.equalsIgnoreCase("valid")) {
-            assertTrue(isValid);
+            assertTrue(validationError == null);
         } else {
-            assertTrue(!isValid);
+            assertTrue(validationError != null && !validationError.isEmpty());
         }
     }
 
     @When("^I set the XML content to (\\S+) in (\\S+)$")
     public void updateXmlContent(String content, String path) throws Throwable {
-        // Express the Regexp above with the code you wish you had
-        throw new cucumber.runtime.PendingException();
+        updatedXml = XmlHelper.editPath(FileUtils.readFileToString(xmlFile), path, content);
+    }
+
+    private File getLocalFile(String fileName) throws URISyntaxException {
+        URI uri = this.getClass().getResource(fileName).toURI();
+        return new File(uri);
     }
 }
