@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/dumitruc/xmlValidation.svg?branch=master)](https://travis-ci.org/dumitruc/xmlValidation)
+
 Schema validation
 ==============
 
